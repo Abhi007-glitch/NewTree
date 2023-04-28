@@ -81,6 +81,9 @@ int remove(int key);
 void removeNonLeaf(int val, Node* parentNode, Node* childTobeRemoved);
 void printTree(Node * cur);
 void printTreeLevelOrder(Node * cur);
+
+vector<int> newSearch(int start,int end);
+
 Node* firstLeftNode(Node* cursor);
 
 
@@ -156,14 +159,13 @@ void BPTree :: insert(int key, int data)
         cur->keys[ix]=key;
         cur->childNode.dataptr[ix]=data;
          }
-      cout<<"inserted Node Successfully"<<endl;
+      cout<<"inserted Node Successfully WIth Key "<< key <<" and data "<<data<<endl;
        }
        else 
        {
         // need to create a new node - overflow split of node will take place 
          
          
-
          //creating temproray storage to store all data (new values too ) then split this data between older and newNdoe 
          vector<int> tempkey(cur->keys);
          vector<int> tempData(cur->childNode.dataptr);   // THESE VECTOR CAN BE REMOVED -NOT REQUIRED
@@ -218,7 +220,7 @@ void BPTree :: insert(int key, int data)
         for ( int i =(leafNodeLen)/2+1;i<tempkey.size();i++)
         {
          nNode->keys.push_back(tempkey[i]);
-         nNode->childNode.dataptr.push_back(tempkey[i]);
+         nNode->childNode.dataptr.push_back(tempData[i]);
         }
 
  
@@ -510,6 +512,103 @@ void BPTree :: search(int key)
 }
 
 
+
+vector<int> BPTree :: newSearch(int key,int end)
+{
+  vector<int>ans;
+   bool flag = false;
+     if (root == NULL) {
+        cout << "Tree is empty" << endl;
+        return ans;
+    } else {
+        Node* cursor = root;
+        while (cursor->isLeaf == false) {
+            /*
+				upper_bound returns an iterator pointing to the first element in the range
+				[first,last) which has a value greater than key.(Because we are storing the
+				same value in the right node;(STL is doing Binary search at back end)
+			*/
+            int idx = std::upper_bound(cursor->keys.begin(), cursor->keys.end(), key) - cursor->keys.begin();
+            cursor = cursor->childNode.treeptr[idx];  //upper_bound takes care of all the edge cases
+        }
+
+        int idx = std::lower_bound(cursor->keys.begin(), cursor->keys.end(), key) - cursor->keys.begin();  //Binary search
+      
+        if (idx == cursor->keys.size() ) {
+            
+            cursor=cursor->next;
+        }
+        else if ( cursor->keys[idx] != key)
+        {
+          while(idx<cursor->keys.size())
+          {
+            if (cursor->keys[idx] <= end)
+            {
+               ans.push_back(cursor->childNode.dataptr[idx]);
+            }
+            else 
+            {
+              flag=true;
+              break;
+            }
+            idx++;
+          }
+
+          if (flag==false)
+          {
+            cursor=cursor->next;
+          }
+        }
+        else 
+        {
+          cout<<"Key is present and it's value is : "<<cursor->childNode.dataptr[idx]<<" Key is"<<key<<endl;
+          while(idx<cursor->keys.size())
+          {
+            if (cursor->keys[idx] <= end)
+            {
+               ans.push_back(cursor->childNode.dataptr[idx]);
+            }
+            else 
+            {
+              flag=true;
+              break;
+            }
+            idx++;
+          }
+
+          if (flag==false)
+          {
+            cursor=cursor->next;
+          }
+        }
+
+        if (flag ==false)
+        {
+          cout<<"Printing values that get inserted in new search in new Node : "<<endl;
+          while(cursor!=NULL && flag==false)
+          {
+            int size = cursor->keys.size();
+            for ( int i=0;i<size;i++)
+            {
+               if (cursor->keys[i] <= end)
+            {
+               ans.push_back(cursor->childNode.dataptr[i]);
+               cout<<"Value : "<<cursor->childNode.dataptr[i]<<" Key : "<< cursor->keys[i]<<endl;
+            }
+            else 
+            {
+              flag=true;
+              break;
+            }
+            }
+            cursor=cursor->next;
+          }
+        }
+        return ans;
+
+}
+}
+
 void BPTree :: printTreeLevelOrder(Node* cursor)
 {
       if (cursor == NULL) return;
@@ -536,6 +635,7 @@ void BPTree :: printTreeLevelOrder(Node* cursor)
         cout << endl;
     }
 }
+
 
 
 
